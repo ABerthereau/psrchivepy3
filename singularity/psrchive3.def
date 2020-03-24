@@ -1,0 +1,204 @@
+Bootstrap: library
+From : ubuntu:sha256.80c52afadf3e7c3f9573de4fe79b7dca57fb3290df6c8dc46a75b02768a81146 
+Stage : build
+%runscript
+
+%environment
+	export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/software/bin"
+	export PYTHONPATH="/software/lib/python3.6/site-packages/"
+	export PSRHOME="/software"
+	export TEMPO2="$PSRHOME/tempo2/T2runtime/bin"
+	export PGPLOT_DIR=/usr/lib/pgplot5
+	export PGPLOT_FONT=/usr/lib/pgplot5/grfont.dat
+	export PGPLOT_INCLUDES=/usr/include
+	export PGPLOT_BACKGROUND=white
+	export PGPLOT_FOREGROUND=black
+	export PGPLOT_DEV=/xs
+
+%labels
+	AUTHOR anais.berthereau@cnrs-orleans.fr
+
+%help
+	A singularity image with psrchive python3-compatible on UBUNTU 18.04
+
+%post
+	
+	apt-get -y update && apt-get -y upgrade &&\
+	export DEBIAN_FRONTEND=noninteractive &&\
+    mkdir /var/run/sshd && \
+    apt-get -y check && \
+    apt-get -y update && \
+    apt-get install -y apt-utils software-properties-common &&\
+    add-apt-repository 'deb http://cz.archive.ubuntu.com/ubuntu bionic main universe' && \
+    add-apt-repository  'deb http://cz.archive.ubuntu.com/ubuntu bionic main multiverse' &&\
+    apt-get -y update --fix-missing && \
+    apt-get -y upgrade &&\
+    apt-get -y update && \
+    apt-get  -y install curl ftp wget csh build-essential gfortran cvs autoconf automake libtool m4 git gcc gsl-bin libgsl0-dev flex bison fort77 libglib2.0-dev gnuplot gnuplot-x11 swig libltdl-dev libltdl7 dkms htop screen xterm  && \
+	apt-get -y install  emacs gpicview xpdf cmake default-jre default-jdk libblas3 liblapack3 libblas-dev liblapack-dev libxext-dev libx11-dev libopenmpi-dev openmpi-bin libhdf5-openmpi-dev mpich libmpich-dev libhdf5-mpich-dev imagemagick &&\
+
+	############################
+	## Put your own timezone
+	############################
+
+	ln -fs /usr/share/zoneinfo/Europe/Paris /etc/localtime
+
+	
+	apt-get install -y tzdata 
+	ln -fs /usr/share/zoneinfo/Europe/Paris /etc/localtime
+	apt-get install -y \
+    libcfitsio-dev \
+    pgplot5 \
+    libfftw3-3 \
+    libfftw3-bin \
+    libfftw3-dev \
+    libfftw3-single3 \
+    libx11-dev \
+    libxml2 \
+    libxml2-dev \
+    openssh-server \
+    xorg \
+	python3-dev \
+	python3-numpy \
+	python3-scipy \
+	python3-matplotlib \
+	ipython3 \
+	python3-sympy \
+	python3-nose \
+	python3-pip \
+
+    rm -rf /var/lib/apt/lists/* &&\
+    apt-get -y clean
+    export PGPLOT_DIR=/usr/lib/pgplot5
+	export PGPLOT_FONT=/usr/lib/pgplot5/grfont.dat
+	export PGPLOT_INCLUDES=/usr/include
+	export PGPLOT_BACKGROUND=white
+	export PGPLOT_FOREGROUND=black
+	export PGPLOT_DEV=/xs
+	export SWIG=/usr/bin/swig3.0
+	export HOME="/"
+	export PSRHOME=/software
+	export OSTYPE=linux
+	mkdir -p $PSRHOME
+	cd $PSRHOME
+	export CUDA_HOME=/usr/local/cuda
+	export CUDA_ROOT=/usr/local/cuda
+	wget http://www.atnf.csiro.au/people/pulsar/psrcat/downloads/psrcat_pkg.tar.gz && \
+    tar -xvf psrcat_pkg.tar.gz -C $PSRHOME && \
+    wget https://www.imcce.fr/content/medias/recherche/equipes/asd/calceph/calceph-3.4.1.tar.gz && \
+    tar -xvf calceph-3.4.1.tar.gz -C $PSRHOME && \
+    git clone https://bitbucket.org/psrsoft/tempo2.git && \
+    git clone git://git.code.sf.net/p/psrchive/code psrchive && \
+    git clone https://github.com/straten/epsic.git &&
+
+    export CALCEPH=$PSRHOME/calceph-3.4.1
+	export PATH=$PATH:$CALCEPH/install/bin
+	export LD_LIBRARY_PATH=$CALCEPH/install/lib
+	export C_INCLUDE_PATH=$C_INCLUDE_PATH:$CALCEPH/install/include
+	cd $CALCEPH
+	./configure --prefix=$CALCEPH/install --with-pic --enable-shared --enable-static --enable-fortran --enable-thread && \
+	make && \
+	make check && \
+	make install && \
+	rm -f ../calceph-3.4.1.tar.gz
+	export TEMPO2=$PSRHOME/tempo2/T2runtime
+	export PATH=$PATH:$PSRHOME/tempo2/T2runtime/bin
+	export C_INCLUDE_PATH=$C_INCLUDE_PATH:$PSRHOME/tempo2/T2runtime/include
+	export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PSRHOME/tempo2/T2runtime/lib
+	cd $PSRHOME/tempo2
+	sync && perl -pi -e 's/chmod \+x/#chmod +x/' bootstrap # Get rid of: returned a non-zero code: 126.
+	./bootstrap && \
+	./configure --x-libraries=/usr/lib/x86_64-linux-gnu --with-calceph=$CALCEPH/install/lib --enable-shared --enable-static --with-pic F77=gfortran CPPFLAGS="-I"$CALCEPH"/install/include" && \
+	make -j $(nproc) && \
+	make install && \
+	make plugins && \
+	make plugins-install && \
+	rm -rf .git
+
+
+
+	export PSRCHIVE=$PSRHOME/psrchive
+	export PATH=$PATH:$PSRCHIVE/install/bin
+	export C_INCLUDE_PATH=$C_INCLUDE_PATH:$PSRCHIVE/install/include
+	export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PSRCHIVE/install/lib
+	export PYTHONPATH=$PSRHOME/lib/python3.6/site-packages
+	cd $PSRCHIVE
+	./bootstrap && \
+	./configure && \
+ 	cd packages && make && cd - && \
+  	./packages/epsic.csh &&
+
+	./configure --enable-shared --enable-static F77=gfortran CFLAGS=-fPIC FFLAGS=-fPIC && 
+
+	make -j $(nproc) && \
+	make && \
+	make install && \
+	rm -rf .git
+	cd $HOME
+	cd $PSRCHIVE
+	cd packages && make && cd - && \
+  	./packages/epsic.csh &&
+
+	./configure --enable-shared --enable-static F77=gfortran CFLAGS=-fPIC FFLAGS=-fPIC && 
+	make -j $(nproc) && \
+	make && \
+	make install && \
+	cd $PSRHOME
+	pip3 install pint
+	pip3 install Cython
+	pip3 install libstempo --install-option="--with-tempo2=/software/tempo2/T2runtime/"
+
+
+
+	##################################
+	##  Samplers
+	##  PTMCMCSampler
+	##  Emcee
+	##  Bilby & lalsuite
+	##	pymultinest
+	##################################
+
+	git clone https://github.com/jellis18/PTMCMCSampler.git
+	cd PTMCMCSampler &&\
+	python3 setup.py install
+	cd -
+	pip3 install emcee
+	pip3 install bilby
+	pip3 install lalsuite gwpy
+	pip3 install nestle
+	pip3 install progress
+
+	git clone https://github.com/JohannesBuchner/MultiNest 
+	cd ./MultiNest/build
+	cmake ..
+	make
+	cd -
+	export LD_LIBRARY_PATH=$PSRHOME/MultiNest/lib:
+	pip3 install pymultinest
+
+	pip3 install setuptools
+	pip3 install astropy
+	pip3 install jupyterlab
+	pip3 install --upgrade pip
+	pip3 install jupyter
+	pip3 install "numpy<1.17"
+
+
+	##################################
+	##  Tensorflow & Keras
+	##################################
+
+	apt-get update -y 
+	pip3 install --upgrade tensorflow
+	pip3 install keras
+
+
+	echo "Predictor::default = tempo2" >> .psrchive.cfg && \
+	echo "Predictor::policy = default" >> .psrchive.cfg
+	env | awk '{print "export ",$0}' >> $HOME/.profile
+	cd $HOME
+
+
+
+
+
