@@ -7,7 +7,7 @@ Stage : build
 	export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/software/bin"
 	export PYTHONPATH="/software/lib/python3.6/site-packages/"
 	export PSRHOME="/software"
-	export TEMPO2="$PSRHOME/tempo2/T2runtime/bin"
+	export TEMPO2="$PSRHOME/tempo2/T2runtime"
 	export PGPLOT_DIR=/usr/lib/pgplot5
 	export PGPLOT_FONT=/usr/lib/pgplot5/grfont.dat
 	export PGPLOT_INCLUDES=/usr/include
@@ -124,7 +124,9 @@ Stage : build
 	export PYTHONPATH=$PSRHOME/lib/python3.6/site-packages
 	cd $PSRCHIVE
 	./bootstrap && \
-	./configure && \
+	./configure && 
+	echo "HEHOTEST" &&
+
  	cd packages && make && cd - && \
   	./packages/epsic.csh &&
 
