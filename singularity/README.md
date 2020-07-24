@@ -1,6 +1,6 @@
 ### To use the singularity image
 
-This image contains psrchive compatible with python3, libstempo, tempo2 on a ubuntu 18.04 image. 
+This image contains psrchive compatible with python3, libstempo, tempo2 on a ubuntu 18.04 image. You can download the fully built image [here](https://cloud.sylabs.io/library/_container/5f1ab6faae86dd3232debbfe).
 
 ```
 singularity shell PSR.sif
