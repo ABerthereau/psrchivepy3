@@ -3,7 +3,7 @@ If you just want to add the possibility to use psrchive with python3 or make the
 
 ## How to install psrchive on python 3
 
-If you don't have psrchive installed, we would recommend you to follow the very complete explanation [here on Pulsar reference](http://www.ljtwebdevelopment.com/pulsarref/)
+If you don't have psrchive installed, we would recommend you to follow the very complete explanation [here on psrchive installation guide](https://psrchive.sourceforge.net/installation.shtml)
 
 Here, we suppose that psrchive is working fine, and if you are reading this it means you want to use psrchive on python3.  Unfortunately, i'm still trying to figure out how to make it work for both, it's somehow related to PATH and environnment variable. Let's keep this simple ; you won't be able to use both at the same time by adding the path of your python2 and python3 lib to the PYTHONPATH because there is a conflict between the versions and python tries to load the first psrchive.py it finds. It means that if you put python3 path before the python2, it will try to use the python3 psrchive.py EVERYTIME, even if you're under python2.
 **edit** :
